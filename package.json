@@ -1,0 +1,38 @@
+{
+  "name": "SRNetworkLogger",
+  "version": "0.0.1",
+  "description": "Objective-C + CocoaLumberjack logger extension to send live logs to a remote machine.",
+  "main": "nodejs/SRLogger.js",
+  "perferGlobal": true,
+  "scripts": {
+    "test": "nodeunit nodejs/test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StadiumRunner/SRNetworkLogger.git"
+  },
+  "keywords": [
+    "ios",
+    "log",
+    "logger",
+    "logging",
+    "remote",
+    "socket",
+    "live",
+    "console"
+  ],
+  "author": "Connor Grady <connor@stadiumrunner.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/StadiumRunner/SRNetworkLogger/issues"
+  },
+  "homepage": "https://github.com/StadiumRunner/SRNetworkLogger",
+  "dependencies": {
+    "underscore": "~1.6.0",
+    "chalk": "~0.4.0",
+    "socket.io": "~0.9.16"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.8.6"
+  }
+}
