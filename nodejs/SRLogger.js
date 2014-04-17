@@ -1,5 +1,6 @@
 
-var _ = require('underscore'),
+var path = require('path'),
+	_ = require('underscore'),
 	SocketIO = require('socket.io'),
 	SRLogMessage = require('./models/SRLogMessage'),
 	SRLogColor = require('./models/SRLogColor'),
@@ -21,7 +22,52 @@ var _FormatLogMessage = function (message, formatSettings) {
 	}
 
 	// Check for file match
-	else if () {}
+	//
+	// Checks for matching parts of a file path by serializing
+	// 'path/to/file' >> [ 'path', 'to', 'file' ] and compares it to
+	// a potential target path in reverse order to enable the following
+	// to match positive:
+	//
+	// 		path/to/file == my/special/path/to/file
+	//
+	// WARNING: UNTESTED CODE!!!!!
+	//
+	else if (_.isString( message.file ) && message.file.length > 0 &&
+				_.some(formatSettings.files, function (color, path) {
+
+					var formatPath = path.split(path.sep).reverse();
+					var messagePath = message.file.split(path.sep).reverse();
+
+					return _.every(messagePath, function (msgPath, idx) {
+						return formatPath[idx] === msgPath;
+						// To make it case-insensitive:
+						//return formatPath[idx].toUpperCase() === msgPath.toUpperCase();
+					});
+
+				})
+			)  /* end of: else if (file) */
+	{
+
+		// Gets format by finding the first matching
+		// 'path' key and returning it's color format function.
+		var format = _.find(formatSettings.files, function (fn, path) {
+
+			var formatPath = path.split(path.sep).reverse();
+			var messagePath = message.file.split(path.sep).reverse();
+
+			return _.every(messagePath, function (msgPath, idx) {
+				return formatPath[idx] === msgPath;
+				// To make it case-insensitive:
+				//return formatPath[idx].toUpperCase() === msgPath.toUpperCase();
+			});
+
+		});
+
+		if (format) {
+			return format(message.message);
+		}
+
+	}
 
 	// Check for level match
 	else if ( _.has(formatSettings.levels, message.level) ) {
@@ -32,8 +78,8 @@ var _FormatLogMessage = function (message, formatSettings) {
 
 	}
 
-	//
-	else {}
+	// else...
+	return message.message;
 
 }
 
@@ -116,6 +162,11 @@ SRLogger.prototype.setColorForLogLevel = function (color, logLevel) {
 SRLogger.prototype.setColorForFile = function (color, filename) {
 
 	// Do something...
+
+	//filename.split(path.sep)
+	// 'path/to/file' >> [ 'path', 'to', 'file' ]
+
+	_settings.files[ filename ] = color;
 
 }
 
