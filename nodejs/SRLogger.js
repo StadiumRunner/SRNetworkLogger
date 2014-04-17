@@ -2,12 +2,12 @@
 // Modules
 var path = require('path'),
 	_ = require('underscore'),
-	SocketIO = require('socket.io'),
+	SocketIO = require('socket.io');
 
 // Models
 var SRLogMessage = require('./models/SRLogMessage'),
-	SRLogColor = require('./models/SRLogColor'),
 	SRLogLevel = require('./models/SRLogLevel'),
+	SRLogColor = require('./models/SRLogColor');
 
 // Utils
 var FormatLogMessage = require('./utils/FormatLogMessage');
@@ -21,13 +21,24 @@ var SRLogger = function (data) {
 	_io = undefined;
 
 	_settings = {
+		/*
 		levels: {
 			SRLogLevel.loglevels.error: 	SRLogColor('red'),
 			SRLogLevel.loglevels.warn: 		SRLogColor('yellow'),
 			SRLogLevel.loglevels.info: 		SRLogColor('blue')
 		},
+		*/
+		levels: {},
 		files: {},
 		functions: {}
+	}
+
+	// Scoped so 'levels' doesn't get tied to 'this'
+	{
+		var levels = SRLogLevel.loglevels;
+		_settings.levels[ levels.error ] = SRLogColor('red');
+		_settings.levels[ levels.warn ] = SRLogColor('yellow');
+		_settings.levels[ levels.info ] = SRLogColor('blue');
 	}
 
 }

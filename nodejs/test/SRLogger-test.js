@@ -4,6 +4,7 @@ var _ = require('underscore'),
 
 
 
+/*
 exports.testListen = function (test) {
 
 	var logger = new SRLogger();
@@ -23,6 +24,7 @@ exports.testListen = function (test) {
 	test.done();
 
 }
+*/
 
 
 
