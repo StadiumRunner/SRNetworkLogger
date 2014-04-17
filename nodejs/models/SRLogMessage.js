@@ -1,5 +1,6 @@
 
-var SRLogColor = require('./SRLogColor');
+var _ = require('underscore'),
+	SRLogColor = require('./SRLogColor');
 
 var SRLogMessage = function (data) {
 
@@ -16,7 +17,10 @@ var SRLogMessage = function (data) {
 		functions: {}
 	}
 
-	if (data) {
+	if ( _.isString(data) ) {
+		this.message = data;
+	}
+	else if ( _.isObject(data) ) {
 		this.message = data.message;
 		this.level = data.flag;  // data.level isn't nice, but data.flag works :)
 		this.file = data.file;

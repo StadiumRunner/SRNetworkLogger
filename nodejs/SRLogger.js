@@ -1,90 +1,21 @@
 
+// Modules
 var path = require('path'),
 	_ = require('underscore'),
 	SocketIO = require('socket.io'),
-	SRLogMessage = require('./models/SRLogMessage'),
+
+// Models
+var SRLogMessage = require('./models/SRLogMessage'),
 	SRLogColor = require('./models/SRLogColor'),
-	SRLogLevel = require('./models/SRLogLevel');
+	SRLogLevel = require('./models/SRLogLevel'),
+
+// Utils
+var FormatLogMessage = require('./utils/FormatLogMessage');
 
 
 
-// Utilities
-
-var _FormatLogMessage = function (message, formatSettings) {
-
-	// Check for function match
-	if ( _.has(formatSettings.functions, message.function) ) {
-
-		var format = formatSettings.functions[ message.function ];
-
-		return format(message.message);
-
-	}
-
-	// Check for file match
-	//
-	// Checks for matching parts of a file path by serializing
-	// 'path/to/file' >> [ 'path', 'to', 'file' ] and compares it to
-	// a potential target path in reverse order to enable the following
-	// to match positive:
-	//
-	// 		path/to/file == my/special/path/to/file
-	//
-	// WARNING: UNTESTED CODE!!!!!
-	//
-	else if (_.isString( message.file ) && message.file.length > 0 &&
-				_.some(formatSettings.files, function (color, path) {
-
-					var formatPath = path.split(path.sep).reverse();
-					var messagePath = message.file.split(path.sep).reverse();
-
-					return _.every(messagePath, function (msgPath, idx) {
-						return formatPath[idx] === msgPath;
-						// To make it case-insensitive:
-						//return formatPath[idx].toUpperCase() === msgPath.toUpperCase();
-					});
-
-				})
-			)  /* end of: else if (file) */
-	{
-
-		// Gets format by finding the first matching
-		// 'path' key and returning it's color format function.
-		var format = _.find(formatSettings.files, function (fn, path) {
-
-			var formatPath = path.split(path.sep).reverse();
-			var messagePath = message.file.split(path.sep).reverse();
-
-			return _.every(messagePath, function (msgPath, idx) {
-				return formatPath[idx] === msgPath;
-				// To make it case-insensitive:
-				//return formatPath[idx].toUpperCase() === msgPath.toUpperCase();
-			});
-
-		});
-
-		if (format) {
-			return format(message.message);
-		}
-
-	}
-
-	// Check for level match
-	else if ( _.has(formatSettings.levels, message.level) ) {
-
-		var format = formatSettings.levels[ message.level ];
-
-		return format(message.message);
-
-	}
-
-	// else...
-	return message.message;
-
-}
-
-
-
+// TODO:
+//	Add a second 'options' param to pass in config values.
 var SRLogger = function (data) {
 
 	_io = undefined;
@@ -120,7 +51,7 @@ SRLogger.prototype.listen = function (port) {
 		socket.on('log', function (data) {
 
 			var logMsg = new SRLogMessage(data);
-			var str = _FormatLogMessage(logMsg, _settings);
+			var str = FormatLogMessage(logMsg, _settings);
 
 			self.log(str);
 
@@ -140,31 +71,41 @@ SRLogger.prototype.listen = function (port) {
 
 /*
 SRLogger.prototype.log = function (msg) {
-
 	//console.log(msg);
 	console.log(arguments);
-
 }
 */
 SRLogger.prototype.log = console.log;
 
 
 
-// 'color' should be an SRLogColor or string that SRLogColor supports.
+/**
+  *	The following color setters are in descending order of
+  *	priority. The end log result is reached by applying the
+  *	following color rules in order:
+  *		- log level color
+  *		- file color
+  *		- function color
+  */
+
 SRLogger.prototype.setColorForLogLevel = function (color, logLevel) {
 
-	//if (!color || !color instanceof SRLogColor) {
-	//	throw new Error('SRLogMessage#setColorForLogLevel must be passed in an SRLogColor object!');
-	//}
+	if ( !color || !_.isFunction(color) ) {
+		throw new Error('Set invalid color for log level: %s', logLevel);
+	}
+
+	if ( !_.isString(logLevel) )
+		logLevel = logLevel.toString();
+
+	_settings.levels[ logLevel ] = color;
 
 }
 
 SRLogger.prototype.setColorForFile = function (color, filename) {
 
-	// Do something...
-
-	//filename.split(path.sep)
-	// 'path/to/file' >> [ 'path', 'to', 'file' ]
+	if ( !color || !_.isFunction(color) ) {
+		throw new Error('Set invalid color for file: %s', filename);
+	}
 
 	_settings.files[ filename ] = color;
 
@@ -172,11 +113,19 @@ SRLogger.prototype.setColorForFile = function (color, filename) {
 
 SRLogger.prototype.setColorForFunction = function (color, fn) {
 
-	// Do something...
+	if ( !color || !_.isFunction(color) ) {
+		throw new Error('Set invalid color for function: %s', fn);
+	}
+
+	_settings.functions[ fn ] = color;
 
 }
 
 
+
+//
+//	NODEJS MODULE
+//
 
 module.exports = SRLogger;
 
